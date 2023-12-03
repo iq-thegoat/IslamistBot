@@ -2,11 +2,11 @@ from islamway import Parser
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord.ext import tasks
 from Pagination import PaginatorViewNasheed,PaginatorView
 from funks import create_embed
 from islamway.Types import Nasheed
 from icecream import ic
+import textwrap
 
 class Anasheed(commands.Cog):
     def __init__(self, bot: discord.Client):

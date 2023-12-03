@@ -15,7 +15,6 @@ bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 async def on_ready():
     print("Bot is up and ready!")
     await bot.load_extension("Noor")
-    #await bot.load_extension("Server")
     await bot.load_extension("Blur")
     await bot.load_extension("Dorrar")
     await bot.load_extension("Islamway_Anasheed")
@@ -26,5 +25,5 @@ async def on_ready():
         logger.error(str(e))
 
 bot.run(
-    token=""
+    token="MTE3MjA2MDgyODY1NzI1NDQ3MA.GSVur_.l8QfvDWLGiWQv3-sCI_ZB2f2zNJG8B-nXQvVTU"
 )

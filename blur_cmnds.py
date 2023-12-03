@@ -9,15 +9,32 @@ import discord
 from funks import download_attachment, create_embed, create_ratio_string
 from urllib.parse import urlparse
 
-
 def calculate_percentage(frame, total_frames):
+    """
+    Calculate the percentage of processed frames.
+
+    Args:
+        frame (int): Current frame number.
+        total_frames (int): Total number of frames in the video.
+
+    Returns:
+        float: Percentage of processed frames.
+    """
     return (frame / total_frames) * 100
 
 
 from moviepy.editor import VideoFileClip
 
-
 def get_total_frames(input_file):
+    """
+    Get the total number of frames in a video file.
+
+    Args:
+        input_file (str): Path to the input video file.
+
+    Returns:
+        int: Total number of frames.
+    """
     try:
         # Open the video file
         clip = VideoFileClip(input_file)
@@ -33,21 +50,18 @@ def get_total_frames(input_file):
     except Exception as e:
         raise ValueError(f"Unable to get total frames from the input video. Error: {e}")
 
-
 def apply_blur_effect(input_file, output_file, strength):
     """
     Apply a blur effect to a video file using FFmpeg.
 
-    Parameters:
-    - input_file (str): Path to the input video file.
-    - output_file (str): Path to the output video file.
-    - strength (int): Strength of the blur effect.
-    - applies (int): Number of times the blur effect is applied.
+    Args:
+        input_file (str): Path to the input video file.
+        output_file (str): Path to the output video file.
+        strength (int): Strength of the blur effect.
 
-    Returns:
-    - str: Data of the resulting video file.
+    Yields:
+        float or io.BytesIO: Yields percentage completion during processing and the resulting video data.
     """
-
     try:
         total_frames = get_total_frames(input_file)
         # Construct the FFmpeg command
@@ -97,8 +111,17 @@ def apply_blur_effect(input_file, output_file, strength):
         print(f"Error: FFmpeg command failed with return code {e.returncode}.")
         return None
 
-
 def apply_blur_effect_img(input_path, radius=2):
+    """
+    Apply a blur effect to an image file.
+
+    Args:
+        input_path (str): Path to the input image file.
+        radius (int): Radius of the Gaussian blur.
+
+    Returns:
+        io.BytesIO: BytesIO object containing the resulting blurred image data.
+    """
     # Open the image file
     img = Image.open(input_path)
 
@@ -117,12 +140,22 @@ def apply_blur_effect_img(input_path, radius=2):
 
     return output_bytesio
 
-
 async def blur_vid(
     attachment: discord.Attachment or str,
     strength: int,
     interaction: discord.Interaction,
 ):
+    """
+    Blur a video attachment or from a URL and update progress on Discord.
+
+    Args:
+        attachment (discord.Attachment or str): Video attachment or URL.
+        strength (int): Strength of the blur effect.
+        interaction (discord.Interaction): Discord interaction object.
+
+    Returns:
+        Tuple[io.BytesIO, str] or str: Tuple containing the resulting video data and filename on success, error message on failure.
+    """
     if isinstance(attachment, discord.Attachment):
         if attachment.filename.lower().endswith((".mp4", ".mov", ".avi", ".mkv")):
             if await download_attachment(attachment):
@@ -194,18 +227,24 @@ async def blur_vid(
                 elif isinstance(percentage, io.BytesIO):
                     vid = percentage
                     await interaction.edit_original_response(
-                        embed=create_embed(
-                            "Uploading",
-                            "finished blurring, now uploading...",
-                            discord.Color.green(),
-                        )
-                    )
+                    embed=create_embed(
+                    "Uploading",
+                    "finished blurring, now uploading...",
+                    discord.Color.green(),))
                 else:
                     vid = percentage
-            return (vid, name)
-
+                    return (vid, name)
 
 async def blur_img(attachment: discord.Attachment, radius: int):
+    """
+    # Blur an image attachment and return the resulting image data.
+    Args:
+    attachment (discord.Attachment): Image attachment.
+    radius (int): Radius of the Gaussian blur.
+
+    Returns:
+        Tuple[io.BytesIO, str] or bool: Tuple containing the resulting image data and filename on success, False on failure.
+    """
     if attachment.filename.lower().endswith((".jpg", ".jpeg", ".png", ".gif")):
         if await download_attachment(attachment):
             IMGIO = apply_blur_effect_img(attachment.filename, radius)
@@ -213,3 +252,5 @@ async def blur_img(attachment: discord.Attachment, radius: int):
                 return (IMGIO, attachment.filename)
             else:
                 return False
+    else:
+        return "attachment must be an image in one of these filetypes ('.jpg', '.jpeg', '.png', '.gif')"

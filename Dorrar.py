@@ -4,9 +4,25 @@ from discord.ext import commands
 from dorrar import Parser, Types
 from Pagination import PaginatorView
 from funks import create_embed
+import textwrap
+from icecream import ic
+from copy import deepcopy
 
 class Dorrar(commands.Cog):
+    """
+    A Discord cog for searching and displaying Hadiths.
+
+    Attributes:
+        bot (discord.Client): The Discord bot instance.
+    """
+
     def __init__(self, bot: discord.Client):
+        """
+        Initialize the Dorrar cog.
+
+        Args:
+            bot (discord.Client): The Discord bot instance.
+        """
         self.bot = bot
 
     @app_commands.command(name="search_hadith")
@@ -44,10 +60,13 @@ class Dorrar(commands.Cog):
             for result in results:
                 embed = discord.Embed()
                 if embed is not None and result.text is not None:
-                    embed.description = result.text.replace('REDALERTRIGHT', '__').replace('REDALERTLEFT', '__')
+                    MSG  = result.text.replace('REDALERTRIGHT', '').replace('REDALERTLEFT', '')
+                    msgs = textwrap.wrap(MSG,2034,break_long_words=True)
+
                 else:
-                     # Handle Discord API errors
-                    await interaction.followup.send(embed=create_embed("Error","Erorr happened",discord.Color.red()))
+                    # Handle Discord API errors
+                    await interaction.followup.send(embed=create_embed("Error","Error happened",discord.Color.red()))
+
                 embed.add_field(name="الراوي", value=result.narrator,inline=True)
                 embed.add_field(name="المحدث", value=result.muhadith,inline=True)
                 embed.add_field(name="الحكم", value=result.ruling,inline=True)
@@ -55,9 +74,14 @@ class Dorrar(commands.Cog):
                 embed.add_field(name="الصفحه او الرقم", value=result.page,inline=True)
                 embed.add_field(name="رابط الحديث", value=result.url.replace('"',"").replace("'",""),inline=True)
                 embed.add_field(name="شرح الحديث", value=result.sharh,inline=True)
-                msg = f"> {result.text.replace('REDALERTRIGHT', '__').replace('REDALERTLEFT', '__')}"
-
-                MSGS.append(embed)
+                ic(MSG)
+                ic(msgs)
+                for msg in msgs:
+                    d = deepcopy(embed)
+                    d.description = "```"+msg+"```"
+                    ic(d.description)
+                    MSGS.append(d)
+                    ic(MSGS)
 
             if len(MSGS) > 1:
                 view = PaginatorView(MSGS)
@@ -72,4 +96,13 @@ class Dorrar(commands.Cog):
             await interaction.followup.send(embed=create_embed("Error",e,discord.Color.red()))
 
 async def setup(bot):
+    """
+    Setup function for adding the Dorrar cog to the bot.
+
+    Args:
+        bot (commands.Bot): The Discord bot instance.
+
+    Returns:
+        None
+    """
     await bot.add_cog(Dorrar(bot=bot))

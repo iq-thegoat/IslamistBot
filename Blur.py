@@ -5,9 +5,21 @@ from discord.ext import tasks
 from blur_cmnds import blur_vid, blur_img
 from funks import create_ratio_string, create_embed
 
-
 class Blur(commands.Cog):
+    """
+    A Discord cog for blurring videos and images.
+
+    Attributes:
+        bot (commands.Bot): The Discord bot instance.
+    """
+
     def __init__(self, bot):
+        """
+        Initialize the Blur cog.
+
+        Args:
+            bot (commands.Bot): The Discord bot instance.
+        """
         self.bot = bot
 
     @app_commands.command(name="blur_video")
@@ -37,6 +49,19 @@ class Blur(commands.Cog):
         message: str = " ",
         url: str = None,
     ):
+        """
+        Blur a video and send the result with a caption.
+
+        Args:
+            interaction (discord.Interaction): The interaction object.
+            blur_strength (app_commands.Choice[int]): The strength of the blur effect.
+            video (discord.Attachment): The video attachment to blur.
+            message (str): The caption to include with the blurred video.
+            url (str): The URL of the video on TikTok or YouTube.
+
+        Returns:
+            None
+        """
         await interaction.response.send_message(
             embed=create_embed("Working On it...", "", discord.Color.green()),
             ephemeral=True,
@@ -87,6 +112,18 @@ class Blur(commands.Cog):
         image: discord.Attachment,
         message: str = " ",
     ):
+        """
+        Blur an image and send the result with a caption.
+
+        Args:
+            interaction (discord.Interaction): The interaction object.
+            blur_strength (app_commands.Choice[int]): The strength of the blur effect.
+            image (discord.Attachment): The image attachment to blur.
+            message (str): The caption to include with the blurred image.
+
+        Returns:
+            None
+        """
         await interaction.response.send_message(
             embed=create_embed("Working On it...", "", discord.Color.green()),
             ephemeral=True,
@@ -110,6 +147,14 @@ class Blur(commands.Cog):
                 embed=create_embed("Error", resp, color=discord.Color.red())
             )
 
-
 async def setup(bot):
+    """
+    Setup function for adding the Blur cog to the bot.
+
+    Args:
+        bot (commands.Bot): The Discord bot instance.
+
+    Returns:
+        None
+    """
     await bot.add_cog(Blur(bot=bot))

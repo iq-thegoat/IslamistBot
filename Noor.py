@@ -1,13 +1,18 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord.ext import tasks
 from Noor_Wrapper import Parser, Types
-from Pagination import  PaginatorView
+from Pagination import PaginatorView
 from funks import create_embed
 
 class Noor(commands.Cog):
     def __init__(self, bot: discord.Client):
+        """
+        Initializes the Noor cog.
+
+        Parameters:
+        - bot (discord.Client): The Discord bot instance.
+        """
         self.bot = bot
 
     @app_commands.command(name="noor_search")
@@ -17,18 +22,26 @@ class Noor(commands.Cog):
     async def noor_search(
         self, Interaction: discord.Interaction, query: str, limit: int = 1
     ):
+        """
+        Searches for books and sends the results as embeds.
+
+        Parameters:
+        - Interaction (discord.Interaction): The Discord interaction.
+        - query (str): The search query.
+        - limit (int, optional): The number of top books to display. Defaults to 1.
+        """
         parser = Parser()
         await Interaction.response.defer()
         EMBEDS = []
         try:
-            results = parser.search(query,limit=limit)
+            results = parser.search(query, limit=limit)
             if results:
                 top_results = results[0:limit]
                 for book in top_results:
-                    book:Types.SearchResult = book
+                    book: Types.SearchResult = book
                     try:
                         if book:
-                            book:Types.Book = parser.parse_book_page(book.url)
+                            book: Types.Book = parser.parse_book_page(book.url)
                             print(book)
                             embed = discord.Embed(title=book.title, colour=discord.Colour.light_embed())
                             embed.add_field(name="Author", value=book.author, inline=False)
@@ -46,7 +59,7 @@ class Noor(commands.Cog):
                         pass
                 if len(EMBEDS) > 1:
                     view = PaginatorView(EMBEDS)
-                    await Interaction.followup.send(embed=view.initial,view=view)
+                    await Interaction.followup.send(embed=view.initial, view=view)
                 else:
                     await Interaction.followup.send(embed=EMBEDS[0])
             else:
@@ -57,7 +70,6 @@ class Noor(commands.Cog):
                         color=discord.Colour.red(),
                     )
                 )
-
         except Exception as e:
             print(e)
             await Interaction.followup.send(
@@ -71,6 +83,13 @@ class Noor(commands.Cog):
     @app_commands.command(name="parse_book")
     @app_commands.describe(noor_book_url="URL for the book from the noor-book.com site")
     async def send_in_embed(self, Interaction: discord.Interaction, noor_book_url: str):
+        """
+        Parses a book page and sends book details as an embed.
+
+        Parameters:
+        - Interaction (discord.Interaction): The Discord interaction.
+        - noor_book_url (str): The URL of the book page on noor-book.com.
+        """
         parser = Parser()
         await Interaction.response.defer()
         try:
@@ -104,4 +123,10 @@ class Noor(commands.Cog):
             )
 
 async def setup(bot):
+    """
+    Asynchronously adds the Noor cog to the bot.
+
+    Parameters:
+    - bot: The Discord bot instance.
+    """
     await bot.add_cog(Noor(bot=bot))

@@ -15,7 +15,7 @@ class PaginatorView(discord.ui.View):
         Args:
             embeds (List[discord.Embed]): List of embeds to paginate.
         """
-        super().__init__(timeout=30)
+        super().__init__(timeout=None)
         self._embeds = embeds
         self._queue = deque(embeds)
         self._initial = embeds[0]
@@ -53,6 +53,7 @@ class PaginatorView(discord.ui.View):
         Args:
             interaction (discord.Interaction): The interaction object.
         """
+        await interaction.response.defer()
         self._queue.rotate(-1)
         embed = self._queue[0]
         self._current_page -= 1
@@ -83,7 +84,7 @@ class PaginatorView(discord.ui.View):
         """
         return self._initial
 
-
+'''
 class StrPaginatorView(discord.ui.View):
     def __init__(self, MSGS: List[tuple]):
         """
@@ -92,7 +93,7 @@ class StrPaginatorView(discord.ui.View):
         Args:
             MSGS (List[tuple]): List of tuples containing a string and an embed.
         """
-        super().__init__(timeout=30)
+        super().__init__(timeout=None)
         self._embeds = MSGS
         self._queue = deque(MSGS)
         self._initial = MSGS[0]
@@ -159,46 +160,11 @@ class StrPaginatorView(discord.ui.View):
             tuple: The initial tuple containing a string and an embed.
         """
         return self._initial
+'''
 
-
-class PaginatorViewNasheed(discord.ui.View):
+class PaginatorViewNasheed(PaginatorView):
     def __init__(self,embeds:List[discord.Embed]):
-        super().__init__(timeout=30)
-        self._embeds = embeds
-        self._queue = deque(embeds)
-        self._initial= embeds[0]
-        self._len = len(embeds)
-        self._current_page =1
-        self.children[0].disabled =True
-        self._queue[0].set_footer(text=f"Pages Of {self._current_page}/{self._len}")
-
-
-    async def update_buttons(self,interaction:discord.Interaction):
-        for i in self._queue:
-            i.set_footer(text=f"Pages Of {self._current_page}/{self._len}")
-        if self._current_page == self._len:
-            self.children[2].disabled = True
-        else:
-            self.children[2].disabled = False
-
-        if self._current_page == 1:
-            self.children[0].disabled = True
-        else:
-            self.children[0].disabled = False
-
-        await interaction.message.edit(view=self)
-
-
-
-
-    @discord.ui.button(emoji="👈")
-    async def previous(self,interaction:discord.Interaction,_):
-        self._queue.rotate(-1)
-        embed = self._queue[0]
-        self._current_page -=1
-        await  self.update_buttons(interaction)
-        await  interaction.message.edit(embed=embed)
-        await interaction.response.defer()
+        super().__init__(embeds)
 
 
     @discord.ui.button(emoji="⏬")
@@ -235,13 +201,7 @@ class PaginatorViewNasheed(discord.ui.View):
                     await channel.send(f'||{current_embed[6]["value"].replace("||","")}||',file=file)
                     await msg.delete()
 
-    @discord.ui.button(emoji="👉")
-    async def next(self,interaction:discord.Interaction,_):
-        self._queue.rotate(1)
-        embed = self._queue[0]
-        self._current_page+=1
-        await  self.update_buttons(interaction)
-        await  interaction.response.edit_message(embed=embed)
+
 
     @property
     def initial(self)-> discord.Embed:
