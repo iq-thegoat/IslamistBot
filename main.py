@@ -7,9 +7,12 @@ from icecream import ic
 from funks import config
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
-
+TOKEN = os.environ.get("token")
 
 @bot.event
 async def on_ready():
@@ -25,5 +28,5 @@ async def on_ready():
         logger.error(str(e))
 
 bot.run(
-    token="MTAzNDQ3MzU4NDk1OTE2NDQ1Ng.GL4XJw.4Fk2F6fmGB8OpNqk5_trY9OnqSnvSM5lYytYQE"
+    token=TOKEN
 )

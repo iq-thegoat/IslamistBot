@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord.ext import tasks
 from blur_cmnds import blur_vid, blur_img
 from funks import create_ratio_string, create_embed
+from icecream import ic
 
 class Blur(commands.Cog):
     """
@@ -26,9 +27,17 @@ class Blur(commands.Cog):
     @app_commands.describe(
         blur_strength="the strength of the blur",
         video="the video you want to blur",
+        part = "wether to blur the [top] half or the [lower] half or [all] of the video",
         message="caption",
         url="the url of a video on one of these platforms[Tiktok,Youtube]",
     )
+    @app_commands.choices(
+        part=[
+            app_commands.Choice(name="top",value=1),
+            app_commands.Choice(name="all",value=2),
+            #app_commands.Choice(name="bottom",value=3), #need to be fixed
+        ])
+    
     @app_commands.choices(
         blur_strength=[
             app_commands.Choice(name="low", value=10),
@@ -45,6 +54,7 @@ class Blur(commands.Cog):
         self,
         interaction: discord.Interaction,
         blur_strength: app_commands.Choice[int],
+        part: app_commands.Choice[int],
         video: discord.Attachment = None,
         message: str = " ",
         url: str = None,
@@ -62,19 +72,20 @@ class Blur(commands.Cog):
         Returns:
             None
         """
+        part = part.name
         await interaction.response.send_message(
             embed=create_embed("Working On it...", "", discord.Color.green()),
             ephemeral=True,
         )
         if video:
             resp = await blur_vid(
-                video, strength=int(blur_strength.value), interaction=interaction
+                video, strength=int(blur_strength.value), interaction=interaction,part=part
             )
         else:
             resp = await blur_vid(
-                url, strength=int(blur_strength.value), interaction=interaction
+                url, strength=int(blur_strength.value), interaction=interaction,part=part
             )
-
+        ic(resp)
         if isinstance(resp, tuple):
             member = interaction.user
             webhook = await interaction.channel.create_webhook(name=member.name)

@@ -8,6 +8,7 @@ from apis import YoutubeDownloader, TiktokDownloader, generate_random_file_id
 import discord
 from funks import download_attachment, create_embed, create_ratio_string
 from urllib.parse import urlparse
+from icecream import ic
 
 def calculate_percentage(frame, total_frames):
     """
@@ -24,6 +25,26 @@ def calculate_percentage(frame, total_frames):
 
 
 from moviepy.editor import VideoFileClip
+
+def get_video_height(video_file):
+    try:
+        # Run FFmpeg command to get video information
+        command = ["ffmpeg", "-i", video_file]
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        # Extract video resolution from the output
+        height_str = re.search(r"Stream.*Video:.* ([0-9]+)x([0-9]+)", result.stderr)
+        
+        if height_str:
+            width, height = map(int, height_str.groups())
+            return height
+        else:
+            ic("Unable to determine video resolution.")
+            return None
+    except Exception as e:
+        ic(f"An error occurred: {str(e)}")
+        return e
+
 
 def get_total_frames(input_file):
     """
@@ -44,13 +65,13 @@ def get_total_frames(input_file):
 
         # Close the video clip
         clip.close()
-        print(str("TOTALFRAMES " + str(total_frames)))
+        ic(str("TOTALFRAMES " + str(total_frames)))
         return total_frames
 
     except Exception as e:
         raise ValueError(f"Unable to get total frames from the input video. Error: {e}")
 
-def apply_blur_effect(input_file, output_file, strength):
+def apply_blur_effect(input_file, output_file, strength,part:str):
     """
     Apply a blur effect to a video file using FFmpeg.
 
@@ -63,20 +84,63 @@ def apply_blur_effect(input_file, output_file, strength):
         float or io.BytesIO: Yields percentage completion during processing and the resulting video data.
     """
     try:
+        ic(part)
         total_frames = get_total_frames(input_file)
-        # Construct the FFmpeg command
-        ffmpeg_command = [
+        if part == "all":    
+            # Construct the FFmpeg command
+            ffmpeg_command = [
+                "ffmpeg",
+                "-i",
+                input_file,
+                "-vf",
+                f"gblur=sigma={strength}",
+                "-c:a",
+                "copy",
+                output_file,
+                "-y",
+            ]
+        elif part == "top":
+            
+            #top_half_height = int(get_video_height(input_file) / 2)  
+            # Command to blur the top half
+            ffmpeg_command = [
             "ffmpeg",
             "-i",
             input_file,
-            "-vf",
-            f"gblur=sigma={strength}",
+            "-filter_complex",
+            f"[0:v]crop=iw:ih/2:0:0[top];[top]gblur=sigma={strength}[blurred_top];[0:v][blurred_top]overlay=0:0[v]",
+            "-map",
+            "[v]",
+            "-map",
+            "0:a",  # Map all audio streams from the input file
             "-c:a",
-            "copy",
+            "aac",
+            "-b:a",
+            "192k",
             output_file,
             "-y",
-        ]
+            ]
 
+
+        elif part == "bottom":
+            ffmpeg_command = [
+                "ffmpeg",
+                "-i",
+                input_file,
+                "-filter_complex",
+                f"[0:v]crop=iw:ih/2:0:ih/2[bottom];[bottom]gblur=sigma={strength}[blurred_bottom];[0:v][blurred_bottom]overlay=0:ih/2[v];[0:a]anull[a]",
+                "-map",
+                "[v]",
+                "-map",
+                "[a]",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "192k",
+                output_file,
+                "-y",
+                ]
+        ic(output_file)
         # Execute the FFmpeg command using subprocess
         process = subprocess.Popen(
             ffmpeg_command, stderr=subprocess.PIPE, universal_newlines=True
@@ -104,11 +168,12 @@ def apply_blur_effect(input_file, output_file, strength):
         with open(output_file, "rb") as f:
             video_data = f.read()
         os.remove(input_file)
-        os.remove(output_file)
-        yield io.BytesIO(video_data)
+        byts  = io.BytesIO(video_data)
+        ic(len(byts.getvalue()))
+        yield byts
 
     except subprocess.CalledProcessError as e:
-        print(f"Error: FFmpeg command failed with return code {e.returncode}.")
+        ic(f"Error: FFmpeg command failed with return code {e.returncode}.")
         return None
 
 def apply_blur_effect_img(input_path, radius=2):
@@ -144,6 +209,7 @@ async def blur_vid(
     attachment: discord.Attachment or str,
     strength: int,
     interaction: discord.Interaction,
+    part:str
 ):
     """
     Blur a video attachment or from a URL and update progress on Discord.
@@ -168,8 +234,9 @@ async def blur_vid(
                     input_file=attachment.filename,
                     output_file=output,
                     strength=strength,
+                    part=part
                 ):
-                    print("PERCENTAGE" + str(percentage))
+                    ic("PERCENTAGE" + str(percentage))
                     if isinstance(percentage, int) or isinstance(percentage, float):
                         await interaction.edit_original_response(
                             embed=create_embed(
@@ -212,9 +279,9 @@ async def blur_vid(
 
         output = os.path.split(name)[0] + "edited" + os.path.split(name)[1]
         if data:
-            print(data)
+            ic(data)
             for percentage in apply_blur_effect(
-                input_file=name, output_file=output, strength=strength
+                input_file=name, output_file=output, strength=strength,part=part
             ):
                 if isinstance(percentage, int) or isinstance(percentage, float):
                     await interaction.edit_original_response(
@@ -231,6 +298,7 @@ async def blur_vid(
                     "Uploading",
                     "finished blurring, now uploading...",
                     discord.Color.green(),))
+                    return (vid,name)
                 else:
                     vid = percentage
                     return (vid, name)
