@@ -25,5 +25,5 @@ async def on_ready():
         logger.error(str(e))
 
 bot.run(
-    token="MTE3MjA2MDgyODY1NzI1NDQ3MA.GSVur_.l8QfvDWLGiWQv3-sCI_ZB2f2zNJG8B-nXQvVTU"
+    token="MTAzNDQ3MzU4NDk1OTE2NDQ1Ng.GL4XJw.4Fk2F6fmGB8OpNqk5_trY9OnqSnvSM5lYytYQE"
 )

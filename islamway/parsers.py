@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import datetime
 from islamway.Types import Nasheed
 import re
-
+from typing import Optional,Union,List
 
 def htmlit(data):
     with open("data.html","w",errors="ignore") as f:
@@ -14,7 +14,7 @@ class Parser:
     class _Helpers:
 
         @staticmethod
-        def _by_id_inner(id: str, soup: BeautifulSoup) -> str | None:
+        def _by_id_inner(id: str, soup: BeautifulSoup) -> Optional[str]:
             """
             Private method to extract content by element ID from a BeautifulSoup object.
 
@@ -150,7 +150,7 @@ class Parser:
             return nasheeds
 
         @staticmethod
-        def search_nasheed(query:str,limit:int=5) -> list[Nasheed]:
+        def search_nasheed(query:str,limit:int=5) -> List[Nasheed]:
             nasheeds = []
             query = quote(query)
             url = f"https://ar.islamway.net/anasheed?q={query}&type=nasheed"

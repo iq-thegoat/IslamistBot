@@ -4,6 +4,7 @@ from discord.ext import commands
 from Noor_Wrapper import Parser, Types
 from Pagination import PaginatorView
 from funks import create_embed
+from typing import Union
 
 class Noor(commands.Cog):
     def __init__(self, bot: discord.Client):

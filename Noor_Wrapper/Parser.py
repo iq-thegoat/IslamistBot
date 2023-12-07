@@ -7,7 +7,7 @@ from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 from urllib.parse import quote
 from bs4 import element
-
+from typing import Union,Optional
 
 class Parser:
     """
@@ -20,7 +20,7 @@ class Parser:
         """
         return None  # Constructor with no actual code
 
-    def __by_id_inner(self, id: str, soup: BeautifulSoup) -> str | None:
+    def __by_id_inner(self, id: str, soup: BeautifulSoup) -> Optional[str]:
         """
         Private method to extract content by element ID from a BeautifulSoup object.
 
