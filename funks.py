@@ -2,6 +2,9 @@ import discord
 import json
 import aiohttp
 from typing import Union
+import functools
+from functools import  lru_cache
+import pickle
 
 
 async def create_embed(title: str, content: str, color: discord.Color):

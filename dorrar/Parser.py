@@ -11,8 +11,9 @@ import re
 import colorama
 from typing import Optional
 from icecream import ic
+from joblib import  Memory
 
-
+memory = Memory("tmp/dorrarWrapper_cache",verbose=0)
 def check_item(item):
     try:
         if item:
@@ -46,6 +47,7 @@ class Parser:
         """
         Constructor for the Parser class.
         """
+        self.search  = memory.cache(self.search)
         return None  # Constructor with no actual code
 
     def __by_id_inner(self, id: str, soup: BeautifulSoup) -> Optional[str]:
@@ -77,7 +79,6 @@ class Parser:
         """
         element = soup.find(id=id)
         return element
-
     def parse_hadith_page(self, HTML) -> Hadith:
         """
         Parse a book page given its URL and return a Hadith object.

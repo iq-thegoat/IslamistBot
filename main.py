@@ -22,6 +22,7 @@ async def on_ready():
     await bot.load_extension("Blur")
     await bot.load_extension("Dorrar")
     await bot.load_extension("Islamway_Anasheed")
+    await bot.load_extension("background_tasks")
     try:
         synced = await bot.tree.sync()
         print(f"synced {len(synced)} command[s]")

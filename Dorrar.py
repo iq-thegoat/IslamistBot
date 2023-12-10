@@ -83,20 +83,17 @@ class Dorrar(commands.Cog):
                     inline=True,
                 )
                 embed.add_field(name="شرح الحديث", value=result.sharh, inline=True)
-                ic(MSG)
-                ic(msgs)
+
                 for msg in msgs:
                     d = deepcopy(embed)
                     d.description = "```" + msg + "```"
-                    ic(d.description)
                     MSGS.append(d)
-                    ic(MSGS)
 
             if len(MSGS) > 1:
                 view = PaginatorView(MSGS, user=interaction.user)
                 await interaction.followup.send(embed=view.initial, view=view)
             elif MSGS:
-                await interaction.followup.send(MSGS[0][0], embed=MSGS[0][1])
+                await interaction.followup.send(embed=MSGS[0]) # sending the only embed in the list in case there is only one result
             else:
                 await interaction.followup.send(
                     embed=await create_embed(

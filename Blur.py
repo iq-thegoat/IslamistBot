@@ -92,7 +92,6 @@ class Blur(commands.Cog):
                 interaction=interaction,
                 part=part,
             )
-        ic(resp)
         if isinstance(resp, tuple):
             member = interaction.user
             webhook = await interaction.channel.create_webhook(name=member.name)

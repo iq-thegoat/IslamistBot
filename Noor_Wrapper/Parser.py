@@ -9,8 +9,9 @@ from urllib.parse import quote
 from bs4 import element
 from typing import Union, Optional
 from icecream import ic
+from joblib import  Memory
 
-
+memory = Memory("tmp/NoorWrapper_cache",verbose=0)
 class Parser:
     """
     This class provides methods for parsing book information and performing book searches.
@@ -20,6 +21,8 @@ class Parser:
         """
         Constructor for the Parser class.
         """
+        self.search = memory.cache(self.search)
+        self.parse_book_page = memory.cache(self.parse_book_page)
         return None  # Constructor with no actual code
 
     def __by_id_inner(self, id: str, soup: BeautifulSoup) -> Optional[str]:
@@ -65,14 +68,14 @@ class Parser:
         BOOK = {}
         session = HTMLSession()
         r = session.get(url)
-        print(r.status_code)
+        
         # Retry the request up to 10 times if it doesn't return a 200 status code
         for i in range(10):
             if r.status_code != 200:
                 r = session.get(url)
             else:
                 break
-        print(r.status_code)
+        
 
         soup = BeautifulSoup(r.content, "html.parser")
         title = soup.find("h1", {"itemprop": "headline"})
@@ -135,7 +138,7 @@ class Parser:
 
         return BOOK
 
-    def search(self, query, limit: int = 5):
+    def search(self,query, limit: int = 5):
         """
         Search for books using a query and return a list of SearchResult objects.
 
@@ -156,7 +159,7 @@ class Parser:
                 r = session.get(URL)
             else:
                 break
-        print(r.status_code)
+        
 
         soup = BeautifulSoup(r.content, "html.parser")
         results = soup.find_all(
