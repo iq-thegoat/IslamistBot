@@ -7,7 +7,9 @@ from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 from urllib.parse import quote
 from bs4 import element
-from typing import Union,Optional
+from typing import Union, Optional
+from icecream import ic
+
 
 class Parser:
     """
@@ -64,7 +66,6 @@ class Parser:
         session = HTMLSession()
         r = session.get(url)
         print(r.status_code)
-
         # Retry the request up to 10 times if it doesn't return a 200 status code
         for i in range(10):
             if r.status_code != 200:
@@ -120,6 +121,7 @@ class Parser:
         BOOK["img_url"] = "https://www.noor-book.com/" + str(link) if link else None
 
         # Create a Book object using the extracted information
+        BOOK["URL"] = url
         BOOK = Book(
             title=title,
             ISBN=ISBN,
@@ -128,11 +130,12 @@ class Parser:
             language=BOOK["language"],
             pages_count=BOOK["nop"],
             img_url=BOOK["img_url"],
+            URL=BOOK["URL"],
         )
 
         return BOOK
 
-    def search(self, query,limit:int=5):
+    def search(self, query, limit: int = 5):
         """
         Search for books using a query and return a list of SearchResult objects.
 
@@ -146,7 +149,6 @@ class Parser:
         query = quote(query)
         URL = "https://www.noor-book.com/?search_for=" + query.strip()
         r = session.get(URL)
-        print(r.status_code)
 
         # Retry the request up to 10 times if it doesn't return a 200 status code
         for i in range(10):
@@ -165,7 +167,7 @@ class Parser:
         # Extract book titles and URLs from the search results
         x = 0
         for book in results:
-            x+=1
+            x += 1
             soup = BeautifulSoup(str(book), "html.parser")
             Element = soup.find("a", {"class": "img-a"})
             title = None

@@ -3,7 +3,8 @@ import json
 import aiohttp
 from typing import Union
 
-def create_embed(title: str, content: str, color: discord.Color):
+
+async def create_embed(title: str, content: str, color: discord.Color):
     """
     Create and return a Discord embed with the specified title, content, and color.
 
@@ -19,7 +20,8 @@ def create_embed(title: str, content: str, color: discord.Color):
     embed.add_field(name=content, value="")
     return embed
 
-def config() -> dict:
+
+async def config() -> dict:
     """
     Read and return the contents of the "Config.json" file as a dictionary.
 
@@ -28,6 +30,7 @@ def config() -> dict:
     """
     with open("Config.json", "r") as f:
         return json.load(f)
+
 
 async def download_attachment(attachment):
     """
@@ -50,7 +53,8 @@ async def download_attachment(attachment):
             else:
                 return False
 
-def create_ratio_string(
+
+async def create_ratio_string(
     percentage: Union[int, float],
     upchar: str = "🟩",
     downchar: str = "🟥",

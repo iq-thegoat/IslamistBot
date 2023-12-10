@@ -10,6 +10,7 @@ from funks import download_attachment, create_embed, create_ratio_string
 from urllib.parse import urlparse
 from icecream import ic
 
+
 def calculate_percentage(frame, total_frames):
     """
     Calculate the percentage of processed frames.
@@ -26,15 +27,18 @@ def calculate_percentage(frame, total_frames):
 
 from moviepy.editor import VideoFileClip
 
+
 def get_video_height(video_file):
     try:
         # Run FFmpeg command to get video information
         command = ["ffmpeg", "-i", video_file]
-        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run(
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
 
         # Extract video resolution from the output
         height_str = re.search(r"Stream.*Video:.* ([0-9]+)x([0-9]+)", result.stderr)
-        
+
         if height_str:
             width, height = map(int, height_str.groups())
             return height
@@ -71,7 +75,8 @@ def get_total_frames(input_file):
     except Exception as e:
         raise ValueError(f"Unable to get total frames from the input video. Error: {e}")
 
-def apply_blur_effect(input_file, output_file, strength,part:str):
+
+def apply_blur_effect(input_file, output_file, strength, part: str):
     """
     Apply a blur effect to a video file using FFmpeg.
 
@@ -86,7 +91,7 @@ def apply_blur_effect(input_file, output_file, strength,part:str):
     try:
         ic(part)
         total_frames = get_total_frames(input_file)
-        if part == "all":    
+        if part == "all":
             # Construct the FFmpeg command
             ffmpeg_command = [
                 "ffmpeg",
@@ -100,27 +105,25 @@ def apply_blur_effect(input_file, output_file, strength,part:str):
                 "-y",
             ]
         elif part == "top":
-            
-            #top_half_height = int(get_video_height(input_file) / 2)  
+            # top_half_height = int(get_video_height(input_file) / 2)
             # Command to blur the top half
             ffmpeg_command = [
-            "ffmpeg",
-            "-i",
-            input_file,
-            "-filter_complex",
-            f"[0:v]crop=iw:ih/2:0:0[top];[top]gblur=sigma={strength}[blurred_top];[0:v][blurred_top]overlay=0:0[v]",
-            "-map",
-            "[v]",
-            "-map",
-            "0:a",  # Map all audio streams from the input file
-            "-c:a",
-            "aac",
-            "-b:a",
-            "192k",
-            output_file,
-            "-y",
+                "ffmpeg",
+                "-i",
+                input_file,
+                "-filter_complex",
+                f"[0:v]crop=iw:ih/2:0:0[top];[top]gblur=sigma={strength}[blurred_top];[0:v][blurred_top]overlay=0:0[v]",
+                "-map",
+                "[v]",
+                "-map",
+                "0:a",  # Map all audio streams from the input file
+                "-c:a",
+                "aac",
+                "-b:a",
+                "192k",
+                output_file,
+                "-y",
             ]
-
 
         elif part == "bottom":
             ffmpeg_command = [
@@ -139,7 +142,7 @@ def apply_blur_effect(input_file, output_file, strength,part:str):
                 "192k",
                 output_file,
                 "-y",
-                ]
+            ]
         ic(output_file)
         # Execute the FFmpeg command using subprocess
         process = subprocess.Popen(
@@ -168,13 +171,14 @@ def apply_blur_effect(input_file, output_file, strength,part:str):
         with open(output_file, "rb") as f:
             video_data = f.read()
         os.remove(input_file)
-        byts  = io.BytesIO(video_data)
+        byts = io.BytesIO(video_data)
         ic(len(byts.getvalue()))
         yield byts
 
     except subprocess.CalledProcessError as e:
         ic(f"Error: FFmpeg command failed with return code {e.returncode}.")
         return None
+
 
 def apply_blur_effect_img(input_path, radius=2):
     """
@@ -205,11 +209,12 @@ def apply_blur_effect_img(input_path, radius=2):
 
     return output_bytesio
 
+
 async def blur_vid(
     attachment: discord.Attachment or str,
     strength: int,
     interaction: discord.Interaction,
-    part:str
+    part: str,
 ):
     """
     Blur a video attachment or from a URL and update progress on Discord.
@@ -234,21 +239,21 @@ async def blur_vid(
                     input_file=attachment.filename,
                     output_file=output,
                     strength=strength,
-                    part=part
+                    part=part,
                 ):
                     ic("PERCENTAGE" + str(percentage))
                     if isinstance(percentage, int) or isinstance(percentage, float):
                         await interaction.edit_original_response(
-                            embed=create_embed(
+                            embed=await create_embed(
                                 "Percentage",
-                                create_ratio_string(percentage),
+                                await create_ratio_string(percentage),
                                 discord.Color.gold(),
                             )
                         )
                     elif isinstance(percentage, io.BytesIO):
                         vid = percentage
                         await interaction.edit_original_response(
-                            embed=create_embed(
+                            embed=await create_embed(
                                 "Uploading",
                                 "finished blurring, uploading...",
                                 discord.Color.green(),
@@ -281,27 +286,30 @@ async def blur_vid(
         if data:
             ic(data)
             for percentage in apply_blur_effect(
-                input_file=name, output_file=output, strength=strength,part=part
+                input_file=name, output_file=output, strength=strength, part=part
             ):
                 if isinstance(percentage, int) or isinstance(percentage, float):
                     await interaction.edit_original_response(
-                        embed=create_embed(
+                        embed=await create_embed(
                             "Percentage",
-                            create_ratio_string(percentage),
+                            await create_ratio_string(percentage),
                             discord.Color.gold(),
                         )
                     )
                 elif isinstance(percentage, io.BytesIO):
                     vid = percentage
                     await interaction.edit_original_response(
-                    embed=create_embed(
-                    "Uploading",
-                    "finished blurring, now uploading...",
-                    discord.Color.green(),))
-                    return (vid,name)
+                        embed=await create_embed(
+                            "Uploading",
+                            "finished blurring, now uploading...",
+                            discord.Color.green(),
+                        )
+                    )
+                    return (vid, name)
                 else:
                     vid = percentage
                     return (vid, name)
+
 
 async def blur_img(attachment: discord.Attachment, radius: int):
     """

@@ -2,18 +2,20 @@ from pydantic import BaseModel
 from typing import Optional
 import datetime
 
+
 class Hadith(BaseModel):
     """
     Pydantic model for representing information about a hadith.
     """
-    text:Optional[str]
-    narrator:Optional[str]
-    page:Optional[str or int]
-    muhadith:Optional[str]
-    ruling:Optional[str]
-    source:Optional[str]
-    url:Optional[str]
-    sharh:Optional[str]
+
+    text: Optional[str]
+    narrator: Optional[str]
+    page: Optional[str or int]
+    muhadith: Optional[str]
+    ruling: Optional[str]
+    source: Optional[str]
+    url: Optional[str]
+    sharh: Optional[str]
 
     def __hash__(self):
         return hash(self.url)

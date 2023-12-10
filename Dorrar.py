@@ -8,6 +8,7 @@ import textwrap
 from icecream import ic
 from copy import deepcopy
 
+
 class Dorrar(commands.Cog):
     """
     A Discord cog for searching and displaying Hadiths.
@@ -29,14 +30,10 @@ class Dorrar(commands.Cog):
     @app_commands.describe(
         query="search query EX:صوموا تصحوام",
         limit="top %limit% books",
-        specialist="wether to search in specialist more complicated and long resources"
+        specialist="wether to search in specialist more complicated and long resources",
     )
     async def search_hadith(
-        self,
-        interaction: discord.Interaction,
-        query: str,
-        limit: int,
-        specialist: bool
+        self, interaction: discord.Interaction, query: str, limit: int, specialist: bool
     ):
         """
         Search for Hadiths based on the provided query.
@@ -54,46 +51,65 @@ class Dorrar(commands.Cog):
         try:
             await interaction.response.defer()
             parser = Parser()
-            results: list[Types.Hadith] = parser.search(query, limit=limit, specialist=specialist)
+            results: list[Types.Hadith] = parser.search(
+                query, limit=limit, specialist=specialist
+            )
             MSGS = []
 
             for result in results:
                 embed = discord.Embed()
                 if embed is not None and result.text is not None:
-                    MSG  = result.text.replace('REDALERTRIGHT', '').replace('REDALERTLEFT', '')
-                    msgs = textwrap.wrap(MSG,2034,break_long_words=True)
+                    MSG = result.text.replace("REDALERTRIGHT", "").replace(
+                        "REDALERTLEFT", ""
+                    )
+                    msgs = textwrap.wrap(MSG, 2034, break_long_words=True)
 
                 else:
                     # Handle Discord API errors
-                    await interaction.followup.send(embed=create_embed("Error","Error happened",discord.Color.red()))
+                    await interaction.followup.send(
+                        embed=await create_embed(
+                            "Error", "Error happened", discord.Color.red()
+                        )
+                    )
 
-                embed.add_field(name="الراوي", value=result.narrator,inline=True)
-                embed.add_field(name="المحدث", value=result.muhadith,inline=True)
-                embed.add_field(name="الحكم", value=result.ruling,inline=True)
-                embed.add_field(name="المصدر", value=result.source,inline=True)
-                embed.add_field(name="الصفحه او الرقم", value=result.page,inline=True)
-                embed.add_field(name="رابط الحديث", value=result.url.replace('"',"").replace("'",""),inline=True)
-                embed.add_field(name="شرح الحديث", value=result.sharh,inline=True)
+                embed.add_field(name="الراوي", value=result.narrator, inline=True)
+                embed.add_field(name="المحدث", value=result.muhadith, inline=True)
+                embed.add_field(name="الحكم", value=result.ruling, inline=True)
+                embed.add_field(name="المصدر", value=result.source, inline=True)
+                embed.add_field(name="الصفحه او الرقم", value=result.page, inline=True)
+                embed.add_field(
+                    name="رابط الحديث",
+                    value=result.url.replace('"', "").replace("'", ""),
+                    inline=True,
+                )
+                embed.add_field(name="شرح الحديث", value=result.sharh, inline=True)
                 ic(MSG)
                 ic(msgs)
                 for msg in msgs:
                     d = deepcopy(embed)
-                    d.description = "```"+msg+"```"
+                    d.description = "```" + msg + "```"
                     ic(d.description)
                     MSGS.append(d)
                     ic(MSGS)
 
             if len(MSGS) > 1:
-                view = PaginatorView(MSGS)
+                view = PaginatorView(MSGS, user=interaction.user)
                 await interaction.followup.send(embed=view.initial, view=view)
             elif MSGS:
                 await interaction.followup.send(MSGS[0][0], embed=MSGS[0][1])
             else:
-                await interaction.followup.send(embed=create_embed("NO RESULTS 😔😔","No results found.",discord.Color.red()))
+                await interaction.followup.send(
+                    embed=await create_embed(
+                        "NO RESULTS 😔😔", "No results found.", discord.Color.red()
+                    )
+                )
 
         except (discord.errors.HTTPException, discord.errors.NotFound) as e:
             # Handle Discord API errors
-            await interaction.followup.send(embed=create_embed("Error",e,discord.Color.red()))
+            await interaction.followup.send(
+                embed=await create_embed("Error", e, discord.Color.red())
+            )
+
 
 async def setup(bot):
     """

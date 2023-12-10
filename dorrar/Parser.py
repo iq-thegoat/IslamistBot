@@ -10,7 +10,7 @@ from bs4 import element
 import re
 import colorama
 from typing import Optional
-
+from icecream import ic
 
 
 def check_item(item):
@@ -20,18 +20,20 @@ def check_item(item):
     except:
         return None
 
+
 def extract_urls_from_text(text):
     # Define a regular expression pattern for URLs
-    url_pattern = re.compile(r'https?://\S+')
+    url_pattern = re.compile(r"https?://\S+")
 
     # Find all matches in the text
     urls = re.findall(url_pattern, text)
 
     return urls
 
+
 def remove_html_tags(html):
-    soup = BeautifulSoup(html, 'html.parser')
-    text = soup.get_text(separator=' ', strip=True)
+    soup = BeautifulSoup(html, "html.parser")
+    text = soup.get_text(separator=" ", strip=True)
     return text
 
 
@@ -89,65 +91,79 @@ class Parser:
         soup = BeautifulSoup(str(HTML), "html.parser")
         text = soup.find("h5", {"class": "h5-responsive"})
 
-
         # Extract the book title if found
         if text:
-            text = text.encode_contents().decode().replace('<span class="search-keys">',"REDALERTRIGHT").replace("</span>","REDALERTLEFT")
-            text = text.strip().replace("\t"," ")
-
+            text = (
+                text.encode_contents()
+                .decode()
+                .replace('<span class="search-keys">', "REDALERTRIGHT")
+                .replace("</span>", "REDALERTLEFT")
+            )
+            text = text.strip().replace("\t", " ")
 
         infoblock = soup.find("div", {"class": "d-block mb-2"})
 
         narrator = None
         muhadith = None
-        source   = None
-        page     = None
+        source = None
+        page = None
         ruling = None
         url = None
         sharh = None
         if infoblock:
             data = infoblock.find_all("strong")
-            a_tag = soup.find('a', class_='btn')
+            a_tag = soup.find("a", class_="btn")
             if a_tag:
                 url = extract_urls_from_text(str(a_tag))
                 if url[0]:
                     url = url[0]
-            tafsir = infoblock.find("a",{"class":"xplain default-text-color px-2","data-toggle":"modal"})
+            tafsir = infoblock.find(
+                "a", {"class": "xplain default-text-color px-2", "data-toggle": "modal"}
+            )
             if tafsir:
                 sharh = tafsir["xplain"]
                 if sharh:
-                    sharh = "https://dorar.net/hadith/sharh/"+sharh
+                    sharh = "https://dorar.net/hadith/sharh/" + sharh
             for block in data:
                 if "الراوي" in block.text:
                     narrator = block.text
                     if narrator:
-                         narrator = narrator.split(":")[1].strip().replace("\t"," ")
+                        narrator = narrator.split(":")[1].strip().replace("\t", " ")
                     else:
                         narrator = None
                 elif "| المحدث :" in block.text:
                     muhadith = block.text.strip()
                     if muhadith:
-                        muhadith = muhadith.split(":")[1].strip().replace("\t"," ")
+                        muhadith = muhadith.split(":")[1].strip().replace("\t", " ")
 
                 elif "المصدر" in block.text:
                     source = block.text
                     if source:
-                        source = source.split(":")[1].strip().replace("\t"," ")
+                        source = source.split(":")[1].strip().replace("\t", " ")
 
                 elif "الصفحة أو الرقم" in block.text:
                     page = block.text
                     if page:
-                        page = page.split(":")[1].strip().replace("\t"," ")
-                elif "خلاصة حكم المحدث" in  block.text:
+                        page = page.split(":")[1].strip().replace("\t", " ")
+                elif "خلاصة حكم المحدث" in block.text:
                     ruling = block.text
                     if ruling:
-                        ruling = ruling.split(":")[1].strip().replace("\t"," ")
+                        ruling = ruling.split(":")[1].strip().replace("\t", " ")
 
         text = remove_html_tags(text)
-        HADITH = Hadith(text=text,narrator=narrator,muhadith=muhadith,ruling=ruling,source=source,url=url,page=page,sharh=sharh)
+        HADITH = Hadith(
+            text=text,
+            narrator=narrator,
+            muhadith=muhadith,
+            ruling=ruling,
+            source=source,
+            url=url,
+            page=page,
+            sharh=sharh,
+        )
         return HADITH
 
-    def search(self, query,specialist=False,limit:int=2) -> Hadith:
+    def search(self, query, specialist=False, limit: int = 2) -> Hadith:
         """
         Search for books using a query and return a list of SearchResult objects.
 
@@ -166,20 +182,17 @@ class Parser:
             URL = f"https://dorar.net/hadith/search?q={query.strip()}&st=w&xclude=&rawi%5B%5D=#home"
 
         r = session.get(URL)
-        print(r.status_code)
         # Retry the request up to 10 times if it doesn't return a 200 status code
         for i in range(10):
             if r.status_code != 200:
                 r = session.get(URL)
             else:
                 break
-        print(r.status_code)
 
-        soup = BeautifulSoup(r.content,"html.parser")
-        ahadith = soup.find_all("div",{"class":"border-bottom py-4"})
+        soup = BeautifulSoup(r.content, "html.parser")
+        ahadith = soup.find_all("div", {"class": "border-bottom py-4"})
         unique_hadiths = set()
-        for n,hadith in enumerate(ahadith):
-            print(n)
+        for n, hadith in enumerate(ahadith):
             current_hadith = self.parse_hadith_page(hadith)
             unique_hadiths.add(current_hadith)
             if n >= limit:
@@ -190,9 +203,3 @@ class Parser:
                 if hadith == second_hadth:
                     unique_hadiths.pop(unique_hadiths.index(hadith))
         return unique_hadiths
-if __name__ == "__main__":
-    p = Parser()
-    d = p.search("عمر")
-    for had in d:
-        print("*********************************************************************")
-        print(had)
