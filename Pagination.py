@@ -191,18 +191,14 @@ class PaginatorViewNasheed(PaginatorView):
     async def download(self, interaction: discord.Interaction, _):
         await interaction.response.defer()
         current_embed = self._queue[0]
-        ic(self._embeds)
-        ic(self._current_page)
-        ic(self._queue)
+
         channel = interaction.channel
         msg = await channel.send("Fetching File...")
 
         current_embed = current_embed.to_dict()["fields"]
-        ic(current_embed)
         down_link = current_embed[5]["value"]
-        ic(down_link)
         down_link = down_link.split("|| *")[0].replace("||", "")
-        ic(down_link)
+
         async with aiohttp.ClientSession() as session:
             async with session.get(down_link) as resp:
                 if resp.status == 200:

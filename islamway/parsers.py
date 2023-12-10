@@ -5,7 +5,9 @@ import datetime
 from islamway.Types import Nasheed
 import re
 from typing import Optional, Union, List
+from joblib import Memory
 
+memory = Memory("tmp/islamway_cache",verbose=0)
 
 def htmlit(data):
     with open("data.html", "w", errors="ignore") as f:
@@ -147,6 +149,7 @@ class Parser:
             return nasheed
 
         @staticmethod
+        @memory.cache
         def _proccess_nasheed_url(url: str, limit: int = 5):
             nasheeds = []
             res = requests.get(url)
@@ -162,6 +165,7 @@ class Parser:
             return nasheeds
 
         @staticmethod
+        @memory.cache
         def search_nasheed(query: str, limit: int = 5) -> List[Nasheed]:
             nasheeds = []
             query = quote(query)
@@ -170,24 +174,29 @@ class Parser:
             return ret
 
         @staticmethod
+        @memory.cache
         def most_popular(limit: int = 5):
             url = "https://ar.islamway.net/anasheed?view=popular"
+            print(url)
             ret = Parser.Anasheed._proccess_nasheed_url(url, limit)
             return ret
 
         @staticmethod
+        @memory.cache
         def most_recent(limit: int = 5):
             url = "https://ar.islamway.net/anasheed?view=new"
             ret = Parser.Anasheed._proccess_nasheed_url(url, limit)
             return ret
 
         @staticmethod
+        @memory.cache
         def most_viewed(limit: int = 5):
             url = "https://ar.islamway.net/anasheed?view=visits"
             ret = Parser.Anasheed._proccess_nasheed_url(url, limit)
             return ret
 
         @staticmethod
+        @memory.cache
         def highest_rated(limit: int = 5):
             url = "https://ar.islamway.net/anasheed?view=rates"
             ret = Parser.Anasheed._proccess_nasheed_url(url, limit)

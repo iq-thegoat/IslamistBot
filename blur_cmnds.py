@@ -284,7 +284,6 @@ async def blur_vid(
 
         output = os.path.split(name)[0] + "edited" + os.path.split(name)[1]
         if data:
-            ic(data)
             for percentage in apply_blur_effect(
                 input_file=name, output_file=output, strength=strength, part=part
             ):
