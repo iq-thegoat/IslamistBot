@@ -4,6 +4,7 @@ from discord.ext import commands, tasks
 from icecream import ic
 import shutil
 
+
 class BackgroundTasks(commands.Cog):
     def __init__(self, bot: discord.Client):
         self.bot = bot
@@ -20,6 +21,7 @@ class BackgroundTasks(commands.Cog):
             print("tmp deleted")
         except Exception as e:
             ic("Error clearing cache:", e)
+
 
 def setup(bot):
     bot.add_cog(BackgroundTasks(bot))

@@ -2,12 +2,13 @@ import requests
 from urllib.parse import quote
 from bs4 import BeautifulSoup
 import datetime
-from islamway.Types import Nasheed
+from islamway.Types import Nasheed, Book
 import re
 from typing import Optional, Union, List
 from joblib import Memory
 
-memory = Memory("tmp/islamway_cache",verbose=0)
+memory = Memory("tmp/islamway_cache", verbose=0)
+
 
 def htmlit(data):
     with open("data.html", "w", errors="ignore") as f:
@@ -232,10 +233,11 @@ class Parser:
 
     class Books:
         @staticmethod
+        @memory.cache()
         def search_book(query: str, limit: int = 5):
             query = quote(query)
             url = f"https://ar.islamway.net/books?q={query}&type=book"
-            r = Parser.Books._proccess_book_url(url)
+            r = Parser.Books._proccess_book_url(url, limit=limit)
             return r
 
         @staticmethod
@@ -254,5 +256,101 @@ class Parser:
             return books
 
         @staticmethod
-        def _book_parser(soup):
-            ...
+        def _book_parser(soup) -> Book:
+            BOOKS = {}
+            name = soup.find("h2", {"class": "book-title"})
+
+            book_url, book_name = Parser._Helpers._ina(name)
+            publisher = soup.find("h3", {"class": "media-heading user-name"})
+            publisher_url, publisher_name = Parser._Helpers._ina(publisher)
+            BOOKS["name"] = book_name
+            BOOKS["url"] = book_url
+            BOOKS["publisher_url"] = publisher_url
+            BOOKS["publisher_name"] = publisher_name
+            try:
+                publisher_img = soup.find(
+                    "img", {"class": "media-object avatar veiled"}
+                )
+                publisher_img = publisher_img.get("data-src")
+                if publisher_img:
+                    publisher_img = str("https:" + publisher_img)
+            except:
+                publisher_img = None
+            BOOKS["publisher_img"] = publisher_img
+            try:
+                views = soup.find("span", {"class", "views-count"}).text.strip()
+                views = int(views.replace(",", ""))
+            except:
+                views = None
+            BOOKS["views"] = views
+
+            try:
+                likes = soup.find("span", {"class": "up-votes"}).text.strip()
+                likes = int(likes.replace(",", ""))
+            except:
+                likes = None
+            BOOKS["likes"] = likes
+            try:
+                dislikes = soup.find("span", {"class": "down-votes"}).text.strip()
+                dislikes = int(str(dislikes).replace(",", ""))
+            except:
+                dislikes = None
+            BOOKS["dislikes"] = dislikes
+
+            r = requests.get(book_url)
+            soup = BeautifulSoup(r.content, "html.parser")
+            try:
+                text = Parser._Helpers._by_id_inner(id="entry-summary", soup=soup)
+            except:
+                text = None
+            BOOKS["text"] = text
+            try:
+                time = soup.find("span", {"class": "darker"}).text.strip()
+                if time:
+                    try:
+                        time = datetime.datetime.strptime(time, "%Y-%m-%d")
+                    except Exception as e:
+                        print(e)
+                else:
+                    time = None
+            except:
+                time = None
+            BOOKS["time"] = time
+            try:
+                download_div = soup.find("div", {"class", "iw-resources"})
+                div_tag = download_div.find("a", download=True)
+                download_link = div_tag.get("href")
+                filename = div_tag.get("download")
+                if filename:
+                    filename = Parser._Helpers.make_valid_filename(filename)
+            except:
+                download_link = None
+                filename = None
+            try:
+                img = soup.find("div", {"class": "book-cover img-wpr"})
+                img = img.find("img")["src"]
+            except:
+                img = None
+            BOOKS["img"] = img
+            BOOKS["download_link"] = download_link
+            BOOKS["filename"] = filename
+            try:
+                book = Book(
+                    name=BOOKS["name"],
+                    url=BOOKS["url"],
+                    publisher_url=BOOKS["publisher_url"],
+                    publisher_name=BOOKS["publisher_name"],
+                    publisher_img=BOOKS["publisher_img"],
+                    views=BOOKS["views"],
+                    likes=BOOKS["likes"],
+                    dislikes=BOOKS["dislikes"],
+                    text=BOOKS["text"],
+                    time=BOOKS["time"],
+                    img=BOOKS["img"],
+                    download_link=BOOKS["download_link"],
+                    filename=BOOKS["filename"],
+                )
+            except Exception as e:
+                print(e)
+
+            return book

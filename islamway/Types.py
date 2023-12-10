@@ -29,3 +29,19 @@ class Fatwa(BaseModel):
     dislikes: Optional[int]
     fatwa_url: Optional[str]
     answers: Optional[str]
+
+
+class Book(BaseModel):
+    name: Optional[str]
+    url: Optional[str]
+    publisher_url: Optional[str]
+    publisher_name: Optional[str]
+    publisher_img: Optional[str]
+    views: Optional[int]
+    likes: Optional[int]
+    dislikes: Optional[int]
+    text: Optional[str]
+    time: Optional[datetime.date]
+    img: Optional[str]
+    download_link: Optional[str]
+    filename: Optional[str]
