@@ -7,14 +7,19 @@ import aiohttp
 from funks import *
 import io
 from icecream import ic
+
+
 class PaginatorView(discord.ui.View):
-    def __init__(self, embeds: List[discord.Embed]):
+    def __init__(
+        self, embeds: List[discord.Embed], user: Union[discord.User, discord.Member]
+    ):
         """
         A paginator view for displaying a list of embeds.
 
         Args:
             embeds (List[discord.Embed]): List of embeds to paginate.
         """
+        self.user = user
         super().__init__(timeout=None)
         self._embeds = embeds
         self._queue = deque(embeds)
@@ -23,6 +28,12 @@ class PaginatorView(discord.ui.View):
         self._current_page = 1
         self.children[0].disabled = True
         self._queue[0].set_footer(text=f"Pages Of {self._current_page}/{self._len}")
+
+    def __check_user(self, interaction: discord.Interaction):
+        if self.user.id == interaction.user.id:
+            return True
+        else:
+            return False
 
     async def update_buttons(self, interaction: discord.Interaction):
         """
@@ -53,12 +64,15 @@ class PaginatorView(discord.ui.View):
         Args:
             interaction (discord.Interaction): The interaction object.
         """
-        await interaction.response.defer()
-        self._queue.rotate(-1)
-        embed = self._queue[0]
-        self._current_page -= 1
-        await self.update_buttons(interaction)
-        await interaction.message.edit(embed=embed)
+        if self.__check_user(interaction):
+            await interaction.response.defer()
+            self._queue.rotate(-1)
+            embed = self._queue[0]
+            self._current_page -= 1
+            await self.update_buttons(interaction)
+            await interaction.message.edit(embed=embed)
+        else:
+            await interaction.response.defer()
 
     @discord.ui.button(emoji="👉")
     async def next(self, interaction: discord.Interaction, _):
@@ -68,11 +82,14 @@ class PaginatorView(discord.ui.View):
         Args:
             interaction (discord.Interaction): The interaction object.
         """
-        self._queue.rotate(1)
-        embed = self._queue[0]
-        self._current_page += 1
-        await self.update_buttons(interaction)
-        await interaction.response.edit_message(embed=embed)
+        if self.__check_user(interaction):
+            self._queue.rotate(1)
+            embed = self._queue[0]
+            self._current_page += 1
+            await self.update_buttons(interaction)
+            await interaction.response.edit_message(embed=embed)
+        else:
+            await interaction.response.defer()
 
     @property
     def initial(self) -> discord.Embed:
@@ -83,6 +100,7 @@ class PaginatorView(discord.ui.View):
             discord.Embed: The initial embed.
         """
         return self._initial
+
 
 '''
 class StrPaginatorView(discord.ui.View):
@@ -162,48 +180,64 @@ class StrPaginatorView(discord.ui.View):
         return self._initial
 '''
 
-class PaginatorViewNasheed(PaginatorView):
-    def __init__(self,embeds:List[discord.Embed]):
-        super().__init__(embeds)
 
+class PaginatorViewNasheed(PaginatorView):
+    def __init__(
+        self, embeds: List[discord.Embed], user: Union[discord.User, discord.Member]
+    ):
+        super().__init__(embeds, user)
 
     @discord.ui.button(emoji="⏬")
-    async def download(self,interaction:discord.Interaction,_):
+    async def download(self, interaction: discord.Interaction, _):
         await interaction.response.defer()
-        current_embed  = self._embeds[(self._current_page - 1)]
+        current_embed = self._queue[0]
         ic(self._embeds)
         ic(self._current_page)
         ic(self._queue)
+        channel = interaction.channel
+        msg = await channel.send("Fetching File...")
+
         current_embed = current_embed.to_dict()["fields"]
         ic(current_embed)
         down_link = current_embed[5]["value"]
         ic(down_link)
-        down_link=  down_link.split("|| *")[0].replace("||","")
+        down_link = down_link.split("|| *")[0].replace("||", "")
         ic(down_link)
         async with aiohttp.ClientSession() as session:
             async with session.get(down_link) as resp:
                 if resp.status == 200:
-                    total_size = int(resp.headers.get('Content-Length', 0))
+                    total_size = int(resp.headers.get("Content-Length", 0))
                     mu = io.BytesIO()
                     downloaded = 0
-                    channel = interaction.channel
-                    msg = await channel.send("PROGRESS BAR...")
-
-                    async for chunk in resp.content.iter_chunks() :  # Adjust the chunk size as needed
+                    async for chunk in resp.content.iter_chunks():  # Adjust the chunk size as needed
                         mu.write(chunk[0])
                         downloaded += len(chunk[0])
                         percentage = (downloaded / total_size) * 100
                         ic(percentage)
-                        await msg.edit(content="",embed=create_embed("Progress",create_ratio_string(percentage),discord.Color.yellow()))
+                        await msg.edit(
+                            content="",
+                            embed=await create_embed(
+                                "Progress",
+                                await create_ratio_string(percentage),
+                                discord.Color.yellow(),
+                            ),
+                        )
                     mu.seek(0)
-                    await msg.edit(content="",embed=create_embed("Uploading","Uploading...",discord.Color.green()))
-                    file  = discord.File(fp=mu,filename=current_embed[6]["value"].replace("||",""))
-                    await channel.send(f'||{current_embed[6]["value"].replace("||","")}||',file=file)
+                    await msg.edit(
+                        content="",
+                        embed=await create_embed(
+                            "Uploading", "Uploading...", discord.Color.green()
+                        ),
+                    )
+                    file = discord.File(
+                        fp=mu, filename=current_embed[6]["value"].replace("||", "")
+                    )
+                    await channel.send(
+                        f'||{current_embed[6]["value"].replace("||","").replace("*","")}||',
+                        file=file,
+                    )
                     await msg.delete()
 
-
-
     @property
-    def initial(self)-> discord.Embed:
+    def initial(self) -> discord.Embed:
         return self._initial
-

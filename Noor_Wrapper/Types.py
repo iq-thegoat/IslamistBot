@@ -2,13 +2,14 @@ from pydantic import BaseModel
 from typing import Optional
 import datetime
 
+
 class Book(BaseModel):
     """
     Pydantic model for representing information about a book.
     """
 
     title: Optional[str] = None
-    URL:Optional[str] = None
+    URL: Optional[str] = None
     rating: Optional[int] = None
     author: Optional[str] = None
     category: Optional[str] = None
@@ -22,6 +23,7 @@ class Book(BaseModel):
     file_size: Optional[float] = None
     file_type: Optional[str] = None
     img_url: Optional[str] = None
+
 
 class SearchResult(BaseModel):
     """

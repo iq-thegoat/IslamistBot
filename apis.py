@@ -76,6 +76,7 @@ class YoutubeDownloader:
         except Exception as e:
             return f"Error: {e}"
 
+
 # Example usage (uncomment if needed)
 # if __name__ == "__main__":
 #     TiktokDownloader.download(url="https://www.tiktok.com/@hazim_shwman1/video/7292853003709664518?is_from_webapp=1&sender_device=pc", output=generate_random_file_id() + ".mp4")

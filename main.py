@@ -14,6 +14,7 @@ load_dotenv()
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 TOKEN = os.environ.get("token")
 
+
 @bot.event
 async def on_ready():
     print("Bot is up and ready!")
@@ -27,6 +28,5 @@ async def on_ready():
     except Exception as e:
         logger.error(str(e))
 
-bot.run(
-    token=TOKEN
-)
+
+bot.run(token=TOKEN)
