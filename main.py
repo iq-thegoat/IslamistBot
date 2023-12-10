@@ -5,6 +5,8 @@ from discord.ext import tasks
 from loguru import logger
 from icecream import ic
 from funks import config
+from Pagination import PaginatorView
+
 import os
 
 from dotenv import load_dotenv
@@ -22,7 +24,8 @@ async def on_ready():
     await bot.load_extension("Blur")
     await bot.load_extension("Dorrar")
     await bot.load_extension("Islamway_Anasheed")
-    await bot.load_extension("background_tasks")
+    # await bot.load_extension("background_tasks")
+    await bot.load_extension("Islamway_Books")
     try:
         synced = await bot.tree.sync()
         print(f"synced {len(synced)} command[s]")

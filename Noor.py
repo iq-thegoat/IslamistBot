@@ -74,7 +74,7 @@ class Noor(commands.Cog):
                     except:
                         pass
                 if len(EMBEDS) > 1:
-                    view = PaginatorView(EMBEDS,Interaction.user)
+                    view = PaginatorView(EMBEDS, Interaction.user)
                     await Interaction.followup.send(embed=view.initial, view=view)
                 else:
                     await Interaction.followup.send(embed=EMBEDS[0])

@@ -3,7 +3,7 @@ import json
 import aiohttp
 from typing import Union
 import functools
-from functools import  lru_cache
+from functools import lru_cache
 import pickle
 
 

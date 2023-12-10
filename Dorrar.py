@@ -86,14 +86,16 @@ class Dorrar(commands.Cog):
 
                 for msg in msgs:
                     d = deepcopy(embed)
-                    d.description = "```" + msg + "```"
+                    d.description = msg
                     MSGS.append(d)
 
             if len(MSGS) > 1:
                 view = PaginatorView(MSGS, user=interaction.user)
                 await interaction.followup.send(embed=view.initial, view=view)
             elif MSGS:
-                await interaction.followup.send(embed=MSGS[0]) # sending the only embed in the list in case there is only one result
+                await interaction.followup.send(
+                    embed=MSGS[0]
+                )  # sending the only embed in the list in case there is only one result
             else:
                 await interaction.followup.send(
                     embed=await create_embed(

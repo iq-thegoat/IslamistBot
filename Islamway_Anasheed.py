@@ -56,19 +56,19 @@ class Anasheed(commands.Cog):
                                 name="summary", value=nasheed.text, inline=False
                             )
                             embed.add_field(
-                                name="views", value=nasheed.views, inline=False
+                                name="Views 👀", value=nasheed.views, inline=False
                             )
                             embed.add_field(
-                                name="likes", value=nasheed.likes, inline=False
+                                name="Likes ❤", value=nasheed.likes, inline=False
                             )
                             embed.add_field(
-                                name="dislikes", value=nasheed.dislikes, inline=False
+                                name="Dislikes 👎", value=nasheed.dislikes, inline=False
                             )
                             embed.add_field(
                                 name="url", value=f"||{nasheed.nasheed_url}||"
                             )
                             embed.add_field(
-                                name="download link",
+                                name="Download link 📥",
                                 value=f"||{nasheed.download_url}|| *press the download button*",
                             )
                             embed.add_field(
@@ -137,23 +137,24 @@ class Anasheed(commands.Cog):
                                 name="summary", value=nasheed.text, inline=False
                             )
                             embed.add_field(
-                                name="views", value=nasheed.views, inline=False
+                                name="Views 👀", value=nasheed.views, inline=False
                             )
                             embed.add_field(
-                                name="likes", value=nasheed.likes, inline=False
+                                name="Likes ❤", value=nasheed.likes, inline=False
                             )
                             embed.add_field(
-                                name="dislikes", value=nasheed.dislikes, inline=False
+                                name="dislikes 👎", value=nasheed.dislikes, inline=False
                             )
                             embed.add_field(
                                 name="url", value=f"||{nasheed.nasheed_url}||"
                             )
                             embed.add_field(
-                                name="download link",
+                                name="download link 📥",
                                 value=f"||{nasheed.download_url}|| *press the download button*",
                             )
                             embed.add_field(
-                                name="file_name", value=f"||{nasheed.filename}||"
+                                name="file_name",
+                                value=f"||{nasheed.filename.replace('*','')}||",
                             )
                             embed.set_footer(
                                 text=f"post date:{nasheed.publish_date.isoformat()}",
@@ -217,19 +218,19 @@ class Anasheed(commands.Cog):
                                 name="summary", value=nasheed.text, inline=False
                             )
                             embed.add_field(
-                                name="views", value=nasheed.views, inline=False
+                                name="Views 👀", value=nasheed.views, inline=False
                             )
                             embed.add_field(
-                                name="likes", value=nasheed.likes, inline=False
+                                name="Likes ❤", value=nasheed.likes, inline=False
                             )
                             embed.add_field(
-                                name="dislikes", value=nasheed.dislikes, inline=False
+                                name="Dislikes 👎", value=nasheed.dislikes, inline=False
                             )
                             embed.add_field(
                                 name="url", value=f"||{nasheed.nasheed_url}||"
                             )
                             embed.add_field(
-                                name="download link",
+                                name="Download link 📥",
                                 value=f"||{nasheed.download_url}|| *press the download button*",
                             )
                             embed.add_field(
@@ -297,19 +298,19 @@ class Anasheed(commands.Cog):
                                 name="summary", value=nasheed.text, inline=False
                             )
                             embed.add_field(
-                                name="views", value=nasheed.views, inline=False
+                                name="Views 👀", value=nasheed.views, inline=False
                             )
                             embed.add_field(
-                                name="likes", value=nasheed.likes, inline=False
+                                name="Likes ❤", value=nasheed.likes, inline=False
                             )
                             embed.add_field(
-                                name="dislikes", value=nasheed.dislikes, inline=False
+                                name="Dislikes 👎", value=nasheed.dislikes, inline=False
                             )
                             embed.add_field(
                                 name="url", value=f"||{nasheed.nasheed_url}||"
                             )
                             embed.add_field(
-                                name="download link",
+                                name="Download link 📥",
                                 value=f"||{nasheed.download_url}|| *press the download button*",
                             )
                             embed.add_field(
